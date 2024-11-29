@@ -1,0 +1,57 @@
+import time
+from instagrapi import Client
+
+# Function to log in to Instagram
+def instagram_login(username, password):
+    cl = Client()
+    try:
+        cl.login(username, password)
+        print("\nInstagram login successful!\n")
+        return cl
+    except Exception as e:
+        print(f"Login failed: {e}")
+        exit()
+
+# Function to send a message to inbox
+def send_inbox_message(cl, target_username, messages, delay):
+    try:
+        user_id = cl.user_id_from_username(target_username)
+        for message in messages:
+            cl.direct_send(message, [user_id])
+            print(f"Message successfully sent: {message}")
+            time.sleep(delay)
+    except Exception as e:
+        print(f"Error sending message to inbox: {e}")
+
+# Main function
+def main():
+    username = input("Enter your Instagram username: ")
+    password = input("Enter your Instagram password: ")
+
+    # Attempt to login
+    cl = instagram_login(username, password)
+
+    # This block checks for the login approval if needed
+    try:
+        while True:
+            cl.login(username, password)  # Attempt login again
+            break  # Exit loop if successful
+    except Exception as e:
+        print(f"Error: {e}")
+        exit()
+
+    target_username = input("Enter the target's Instagram username: ")
+    msg_file_path = input("Enter the path of your message file: ")
+    delay_seconds = int(input("Enter delay (in seconds): "))
+
+    try:
+        while True:
+            with open(msg_file_path, 'r') as file:
+                messages = file.readlines()
+            messages = [msg.strip() for msg in messages]
+            send_inbox_message(cl, target_username, messages, delay_seconds)
+    except Exception as e:
+        print(f"Error: {e}")
+
+if __name__ == "__main__":
+    main()
